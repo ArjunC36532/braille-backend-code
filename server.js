@@ -1,13 +1,12 @@
 // Backend (Express.js) - server.js
-//Backend for translator
 import express from "express";
-import { OpenAI } from 'openai';
+import { OpenAI } from "openai";
 import dotenv from "dotenv";
 import multer from "multer";
 import cors from "cors";
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -17,22 +16,29 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
-app.use(cors());
+// ✅ Enable CORS only for your frontend
+app.use(cors({
+  origin: ["braille-translator-4v85-gd1ylhjqi.vercel.app", "http://localhost:3000"], // ← Replace with your actual Vercel frontend URL
+}));
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Setup file upload
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+// Endpoint
 app.post("/translate-voice", upload.single("audio"), async (req, res) => {
   if (!req.file) {
     return res.status(400).send("No audio file uploaded.");
   }
 
   try {
-    const tempFilePath = path.join(__dirname, 'temp_audio.webm');
+    const tempFilePath = path.join(__dirname, "temp_audio.webm");
     fs.writeFileSync(tempFilePath, req.file.buffer);
 
     const transcription = await openai.audio.transcriptions.create({

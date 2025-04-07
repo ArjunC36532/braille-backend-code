@@ -1,4 +1,3 @@
-// Backend (Express.js) - server.js
 import express from "express";
 import { OpenAI } from "openai";
 import dotenv from "dotenv";
@@ -23,7 +22,6 @@ app.use(cors({
   origin: ['https://braille-translator-4v85.vercel.app', 'http://localhost:3000']
 }));
 
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +33,7 @@ const upload = multer({ storage: storage });
 // Endpoint
 app.post("/translate-voice", upload.single("audio"), async (req, res) => {
   if (!req.file) {
-    return res.status(400).send("No audio file uploaded.");
+    return res.status(400).json({ error: "No audio file uploaded." });
   }
 
   try {
@@ -47,16 +45,20 @@ app.post("/translate-voice", upload.single("audio"), async (req, res) => {
       model: "whisper-1",
     });
 
+    console.log("📝 Transcription result:", transcription);
+
     const transcript = transcription.text || "No transcription available.";
+    console.log("✅ Transcript text:", transcript);
+
     const brailleTranslation = await translateTextToBraille(transcript);
+    console.log("🌐 Braille response from GPT:", brailleTranslation);
 
     fs.unlinkSync(tempFilePath);
 
-    res.json({ braille: brailleTranslation });
+    res.json({ braille: brailleTranslation || "No braille returned." });
   } catch (error) {
-    console.error("Error processing audio:", error.message);
+    console.error("❌ Error processing audio:", error);
     res.status(500).json({ error: "Error processing audio." });
-
   }
 });
 
@@ -70,13 +72,15 @@ const translateTextToBraille = async (text) => {
       ],
     });
 
-    return response.choices[0]?.message?.content || "No translation available.";
+    console.log("🧠 GPT raw response:", response);
+
+    return response.choices[0]?.message?.content || null;
   } catch (error) {
-    console.error("Error translating text to Braille:", error.message);
+    console.error("❌ Error translating text to Braille:", error);
     throw new Error("Error translating text to Braille.");
   }
 };
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

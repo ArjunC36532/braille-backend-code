@@ -20,8 +20,9 @@ const PORT = process.env.PORT || 8080;
 
 // ✅ Enable CORS only for your frontend
 app.use(cors({
-  origin: ["braille-translator-4v85-gd1ylhjqi.vercel.app", "http://localhost:3000"], // ← Replace with your actual Vercel frontend URL
+  origin: ['https://braille-translator-4v85.vercel.app', 'http://localhost:3000']
 }));
+
 
 // Middleware
 app.use(express.json());

@@ -55,7 +55,8 @@ app.post("/translate-voice", upload.single("audio"), async (req, res) => {
     res.json({ braille: brailleTranslation });
   } catch (error) {
     console.error("Error processing audio:", error.message);
-    res.status(500).send("Error processing audio.");
+    res.status(500).json({ error: "Error processing audio." });
+
   }
 });
 
